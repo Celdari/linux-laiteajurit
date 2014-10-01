@@ -1,0 +1,334 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configurationDescriptor version="95">
+  <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
+    <df root="../ldd3-read-only" name="0">
+      <df name="include">
+        <in>lddbus.h</in>
+      </df>
+      <df name="lddbus">
+        <in>lddbus.c</in>
+      </df>
+      <df name="misc-modules">
+        <in>complete.c</in>
+        <in>faulty.c</in>
+        <in>hello.c</in>
+        <in>hellop.c</in>
+        <in>jiq.c</in>
+        <in>jit.c</in>
+        <in>kdataalign.c</in>
+        <in>kdatasize.c</in>
+        <in>seq.c</in>
+        <in>silly.c</in>
+        <in>sleepy.c</in>
+      </df>
+      <df name="misc-progs">
+        <in>asynctest.c</in>
+        <in>dataalign.c</in>
+        <in>datasize.c</in>
+        <in>inp.c</in>
+        <in>load50.c</in>
+        <in>mapcmp.c</in>
+        <in>mapper.c</in>
+        <in>nbtest.c</in>
+        <in>netifdebug.c</in>
+        <in>outp.c</in>
+        <in>polltest.c</in>
+        <in>setconsole.c</in>
+        <in>setlevel.c</in>
+      </df>
+      <df name="pci">
+        <in>pci_skel.c</in>
+      </df>
+      <df name="sbull">
+        <in>sbull.c</in>
+        <in>sbull.h</in>
+      </df>
+      <df name="scull">
+        <in>access.c</in>
+        <in>main.c</in>
+        <in>pipe.c</in>
+        <in>scull.h</in>
+      </df>
+      <df name="scullc">
+        <in>main.c</in>
+        <in>mmap.c</in>
+        <in>scullc.h</in>
+      </df>
+      <df name="sculld">
+        <in>main.c</in>
+        <in>mmap.c</in>
+        <in>sculld.h</in>
+      </df>
+      <df name="scullp">
+        <in>main.c</in>
+        <in>mmap.c</in>
+        <in>scullp.h</in>
+      </df>
+      <df name="scullv">
+        <in>main.c</in>
+        <in>mmap.c</in>
+        <in>scullv.h</in>
+      </df>
+      <df name="short">
+        <in>short.c</in>
+      </df>
+      <df name="shortprint">
+        <in>shortprint.c</in>
+        <in>shortprint.h</in>
+      </df>
+      <df name="simple">
+        <in>simple.c</in>
+      </df>
+      <df name="skull">
+        <in>skull_clean.c</in>
+        <in>skull_init.c</in>
+      </df>
+      <df name="snull">
+        <in>snull.c</in>
+        <in>snull.h</in>
+      </df>
+      <df name="tty">
+        <in>tiny_serial.c</in>
+        <in>tiny_tty.c</in>
+      </df>
+      <df name="usb">
+        <in>usb-skeleton.c</in>
+      </df>
+    </df>
+    <logicalFolder name="ExternalFiles"
+                   displayName="Important Files"
+                   projectFiles="false"
+                   kind="IMPORTANT_FILES_FOLDER">
+      <itemPath>../ldd3-read-only/Makefile</itemPath>
+    </logicalFolder>
+  </logicalFolder>
+  <sourceFolderFilter>^(nbproject)$</sourceFolderFilter>
+  <sourceRootList>
+    <Elem>../ldd3-read-only</Elem>
+  </sourceRootList>
+  <projectmakefile>../ldd3-read-only/Makefile</projectmakefile>
+  <confs>
+    <conf name="Default" type="0">
+      <toolsSet>
+        <compilerSet>default</compilerSet>
+        <dependencyChecking>false</dependencyChecking>
+        <rebuildPropChanged>false</rebuildPropChanged>
+      </toolsSet>
+      <codeAssistance>
+        <includeAdditional>true</includeAdditional>
+      </codeAssistance>
+      <makefileType>
+        <makeTool>
+          <buildCommandWorkingDir>../ldd3-read-only</buildCommandWorkingDir>
+          <buildCommand>${MAKE} -f Makefile</buildCommand>
+          <cleanCommand>${MAKE} -f Makefile clean</cleanCommand>
+          <executablePath></executablePath>
+          <cTool>
+            <incDir>
+              <pElem>../../3.12.28+/source/include</pElem>
+            </incDir>
+          </cTool>
+        </makeTool>
+      </makefileType>
+      <item path="../ldd3-read-only/include/lddbus.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../ldd3-read-only/lddbus/lddbus.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="../ldd3-read-only/misc-modules/complete.c"
+            ex="false"
+            tool="0"
+            flavor2="0">
+      </item>
+      <item path="../ldd3-read-only/misc-modules/faulty.c"
+            ex="false"
+            tool="0"
+            flavor2="0">
+      </item>
+      <item path="../ldd3-read-only/misc-modules/hello.c"
+            ex="false"
+            tool="0"
+            flavor2="0">
+      </item>
+      <item path="../ldd3-read-only/misc-modules/hellop.c"
+            ex="false"
+            tool="0"
+            flavor2="0">
+      </item>
+      <item path="../ldd3-read-only/misc-modules/jiq.c"
+            ex="false"
+            tool="0"
+            flavor2="0">
+      </item>
+      <item path="../ldd3-read-only/misc-modules/jit.c"
+            ex="false"
+            tool="0"
+            flavor2="0">
+      </item>
+      <item path="../ldd3-read-only/misc-modules/kdataalign.c"
+            ex="false"
+            tool="0"
+            flavor2="0">
+      </item>
+      <item path="../ldd3-read-only/misc-modules/kdatasize.c"
+            ex="false"
+            tool="0"
+            flavor2="0">
+      </item>
+      <item path="../ldd3-read-only/misc-modules/seq.c"
+            ex="false"
+            tool="0"
+            flavor2="0">
+      </item>
+      <item path="../ldd3-read-only/misc-modules/silly.c"
+            ex="false"
+            tool="0"
+            flavor2="0">
+      </item>
+      <item path="../ldd3-read-only/misc-modules/sleepy.c"
+            ex="false"
+            tool="0"
+            flavor2="0">
+      </item>
+      <item path="../ldd3-read-only/misc-progs/asynctest.c"
+            ex="false"
+            tool="0"
+            flavor2="0">
+      </item>
+      <item path="../ldd3-read-only/misc-progs/dataalign.c"
+            ex="false"
+            tool="0"
+            flavor2="0">
+      </item>
+      <item path="../ldd3-read-only/misc-progs/datasize.c"
+            ex="false"
+            tool="0"
+            flavor2="0">
+      </item>
+      <item path="../ldd3-read-only/misc-progs/inp.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="../ldd3-read-only/misc-progs/load50.c"
+            ex="false"
+            tool="0"
+            flavor2="0">
+      </item>
+      <item path="../ldd3-read-only/misc-progs/mapcmp.c"
+            ex="false"
+            tool="0"
+            flavor2="0">
+      </item>
+      <item path="../ldd3-read-only/misc-progs/mapper.c"
+            ex="false"
+            tool="0"
+            flavor2="0">
+      </item>
+      <item path="../ldd3-read-only/misc-progs/nbtest.c"
+            ex="false"
+            tool="0"
+            flavor2="0">
+      </item>
+      <item path="../ldd3-read-only/misc-progs/netifdebug.c"
+            ex="false"
+            tool="0"
+            flavor2="0">
+      </item>
+      <item path="../ldd3-read-only/misc-progs/outp.c"
+            ex="false"
+            tool="0"
+            flavor2="0">
+      </item>
+      <item path="../ldd3-read-only/misc-progs/polltest.c"
+            ex="false"
+            tool="0"
+            flavor2="0">
+      </item>
+      <item path="../ldd3-read-only/misc-progs/setconsole.c"
+            ex="false"
+            tool="0"
+            flavor2="0">
+      </item>
+      <item path="../ldd3-read-only/misc-progs/setlevel.c"
+            ex="false"
+            tool="0"
+            flavor2="0">
+      </item>
+      <item path="../ldd3-read-only/pci/pci_skel.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="../ldd3-read-only/sbull/sbull.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="../ldd3-read-only/sbull/sbull.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../ldd3-read-only/scull/access.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="../ldd3-read-only/scull/main.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="../ldd3-read-only/scull/pipe.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="../ldd3-read-only/scull/scull.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../ldd3-read-only/scullc/main.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="../ldd3-read-only/scullc/mmap.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="../ldd3-read-only/scullc/scullc.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../ldd3-read-only/sculld/main.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="../ldd3-read-only/sculld/mmap.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="../ldd3-read-only/sculld/sculld.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../ldd3-read-only/scullp/main.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="../ldd3-read-only/scullp/mmap.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="../ldd3-read-only/scullp/scullp.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../ldd3-read-only/scullv/main.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="../ldd3-read-only/scullv/mmap.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="../ldd3-read-only/scullv/scullv.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../ldd3-read-only/short/short.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="../ldd3-read-only/shortprint/shortprint.c"
+            ex="false"
+            tool="0"
+            flavor2="0">
+      </item>
+      <item path="../ldd3-read-only/shortprint/shortprint.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../ldd3-read-only/simple/simple.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="../ldd3-read-only/skull/skull_clean.c"
+            ex="false"
+            tool="0"
+            flavor2="0">
+      </item>
+      <item path="../ldd3-read-only/skull/skull_init.c"
+            ex="false"
+            tool="0"
+            flavor2="0">
+      </item>
+      <item path="../ldd3-read-only/snull/snull.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="../ldd3-read-only/snull/snull.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../ldd3-read-only/tty/tiny_serial.c"
+            ex="false"
+            tool="0"
+            flavor2="0">
+      </item>
+      <item path="../ldd3-read-only/tty/tiny_tty.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="../ldd3-read-only/usb/usb-skeleton.c"
+            ex="false"
+            tool="0"
+            flavor2="0">
+      </item>
+    </conf>
+  </confs>
+</configurationDescriptor>
