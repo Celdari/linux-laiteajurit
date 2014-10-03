@@ -16,29 +16,29 @@ modules:
 	$(MAKE) -C $(KERNELDIR) --debug=b M=$(PWD) modules
 
 modules_install:
-	insmod hello.ko 
-	insmod devdemo.ko	
+	#insmod hello.ko 
+	#insmod devdemo.ko	
 #	$(MAKE) -C $(KERNELDIR) --debug=b M=$(PWD) modules_install
 
 .REINSTALL: modules .UNINSTALL modules_install
 
 .UNINSTALL: 
-	rmmod hello.ko
-	rmmod devdemo.ko
+	#rmmod hello.ko
+	#rmmod devdemo.ko
 
 clean:
-	rmmod hello.ko 
-	rmmod devdemo.ko
+	#rmmod hello.ko 
+	#rmmod devdemo.ko
 	rm -rf *.o *~ core .depend .*.cmd *.ko *.mod.c .tmp_versions
 
 .PHONY: modules modules_install clean
 
 else
     #Specific file build
-    obj-m := hello.o devdemo.o
+    #obj-m := jit.o
 
     # called from kernel build system: just declare what our modules are
-    #obj-m := hello.o hellop.o seq.o jit.o jiq.o sleepy.o complete.o \
+    obj-m := hello.o hellop.o seq.o jit.o jiq.o sleepy.o complete.o \
              silly.o faulty.o kdatasize.o kdataalign.o
 endif
 
