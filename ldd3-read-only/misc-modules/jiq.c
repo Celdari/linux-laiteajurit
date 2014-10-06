@@ -20,6 +20,7 @@
 #include <linux/moduleparam.h>
 #include <linux/init.h>
 
+#include <linux/seq_file.h>
 #include <linux/sched.h>
 #include <linux/kernel.h>
 #include <linux/fs.h>     /* everything... */
@@ -106,25 +107,6 @@ static int jiq_print(void *ptr)
 	data->jiffies = j;
 	return 1;
 }
-
-
-/*
- * Call jiq_print from a work queue
- */
-static void jiq_print_wq(void *ptr)
-{
-	struct clientdata *data = (struct clientdata *) ptr;
-    
-	if (! jiq_print (ptr))
-		return;
-    
-	if (data->delay)
-		schedule_delayed_work(&jiq_work, data->delay);
-	else
-		schedule_work(&jiq_work);
-}
-
-
 
 static int jiq_read_wq(char *buf, char **start, off_t offset,
                    int len, int *eof, void *data)
@@ -231,7 +213,13 @@ static int jiq_read_run_timer(char *buf, char **start, off_t offset,
 	return jiq_data.len;
 }
 
-
+/*
+ * The file operations structure contains our open function along with
+ * set of the canned seq_ ops.
+ */
+static struct file_operations fops = {
+    .read = seq_read
+};
 
 /*
  * the init/clean material
@@ -241,12 +229,12 @@ static int jiq_init(void)
 {
 
 	/* this line is in jiq_init() */
-	INIT_WORK(&jiq_work, jiq_print_wq, &jiq_data);
+	INIT_WORK(&jiq_work, jiq_work.func);
 
-	create_proc_read_entry("jiqwq", 0, NULL, jiq_read_wq, NULL);
-	create_proc_read_entry("jiqwqdelay", 0, NULL, jiq_read_wq_delayed, NULL);
-	create_proc_read_entry("jitimer", 0, NULL, jiq_read_run_timer, NULL);
-	create_proc_read_entry("jiqtasklet", 0, NULL, jiq_read_tasklet, NULL);
+	proc_create_data("jiqwq", 0, NULL, &fops, NULL);
+	proc_create_data("jiqwqdelay", 0, NULL, &fops, NULL);
+	proc_create_data("jitimer", 0, NULL, &fops, NULL);
+	proc_create_data("jiqtasklet", 0, NULL, &fops, NULL);
 
 	return 0; /* succeed */
 }

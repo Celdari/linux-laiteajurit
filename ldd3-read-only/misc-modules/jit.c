@@ -70,12 +70,72 @@ struct jit_data {
  * The file operations structure contains our open function along with
  * set of the canned seq_ ops.
  */
+static ssize_t jit_fn(struct file *filp, char __user *ubuff, size_t len, loff_t *offs) {
+    unsigned long j0, j1; /* jiffies */
+    wait_queue_head_t wait;
+
+    init_waitqueue_head(&wait);
+    j0 = jiffies;
+    j1 = j0 + delay;
+
+    switch ((long) offs) {
+        case JIT_BUSY:
+            while (time_before(jiffies, j1))
+                cpu_relax();
+            break;
+        case JIT_SCHED:
+            while (time_before(jiffies, j1)) {
+                schedule();
+            }
+            break;
+        case JIT_QUEUE:
+            wait_event_interruptible_timeout(wait, 0, delay);
+            break;
+        case JIT_SCHEDTO:
+            set_current_state(TASK_INTERRUPTIBLE);
+            schedule_timeout(delay);
+            break;
+    }
+    j1 = jiffies; /* actual value after we delayed */
+
+    //    len = sprintf(buf, "%9li %9li\n", j0, j1);
+    //    *start = buf;
+    return len;
+}
+
+static int jit_currenttime(struct file *filp, char __user *ubuff, size_t len, loff_t *offs) {
+    struct timeval tv1;
+    struct timespec tv2;
+    unsigned long j1;
+    u64 j2;
+
+    /* get them four */
+    j1 = jiffies;
+    j2 = get_jiffies_64();
+    do_gettimeofday(&tv1);
+    tv2 = current_kernel_time();
+
+    /* print */
+    len = 0;
+    len += sprintf(buf, "0x%08lx 0x%016Lx %10i.%06i\n"
+            "%40i.%09i\n",
+            j1, j2,
+            (int) tv1.tv_sec, (int) tv1.tv_usec,
+            (int) tv2.tv_sec, (int) tv2.tv_nsec);
+    *start = buf;
+    return len;
+}
+
 static struct file_operations fops = {
-    .read = seq_read
+    .read = jit_fn
+};
+
+static struct file_operations time_fops = {
+    .read = jit_currenttime
 };
 
 int __init jit_init(void) {
-    proc_create_data("currenttime", 0, NULL, &fops, NULL);
+    proc_create_data("currenttime", 0, NULL, &time_fops, NULL);
     proc_create_data("jitbusy", 0, NULL, &fops, (void *) JIT_BUSY);
     proc_create_data("jitsched", 0, NULL, &fops, (void *) JIT_SCHED);
     proc_create_data("jitqueue", 0, NULL, &fops, (void *) JIT_QUEUE);
