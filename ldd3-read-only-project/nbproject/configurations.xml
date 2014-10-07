@@ -9,6 +9,7 @@
         <in>lddbus.c</in>
       </df>
       <df name="misc-modules">
+        <in>blockdemo.c</in>
         <in>complete.c</in>
         <in>devdemo.c</in>
         <in>faulty.c</in>
@@ -134,6 +135,11 @@
       <item path="../ldd3-read-only/include/lddbus.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../ldd3-read-only/lddbus/lddbus.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="../ldd3-read-only/misc-modules/blockdemo.c"
+            ex="false"
+            tool="0"
+            flavor2="0">
       </item>
       <item path="../ldd3-read-only/misc-modules/complete.c"
             ex="false"

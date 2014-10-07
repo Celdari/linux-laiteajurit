@@ -28,6 +28,7 @@
 #include <linux/interrupt.h>
 
 #include <linux/seq_file.h>
+#include <linux/uaccess.h>
 #include <linux/sched.h>
 #include <linux/slab.h>
 #include <linux/hardirq.h>
@@ -35,6 +36,11 @@
  * This module is a silly one: it only embeds short code fragments
  * that show how time delays can be handled in the kernel.
  */
+
+#define BUFSIZE 356
+static char buf[BUFSIZE];
+static int read_index = 0;
+static int write_index = 0;
 
 int delay = HZ; /* the default delay, expressed in jiffies */
 
@@ -71,9 +77,27 @@ struct jit_data {
  * set of the canned seq_ ops.
  */
 static ssize_t jit_fn(struct file *filp, char __user *ubuff, size_t len, loff_t *offs) {
+    int remaining;
+    int available;
     unsigned long j0, j1; /* jiffies */
     wait_queue_head_t wait;
 
+    
+    printk(KERN_ALERT "my_read\n");
+    
+    available = write_index - read_index;
+    if(available < 0) { available += BUFSIZE; }
+    if(len > available) { len = available; }
+    if(!access_ok(VERIFY_READ, ubuff, len)) { return -EFAULT; }
+    
+    remaining = copy_to_user(buf, ubuff, len);
+    if(remaining) { return -EFAULT; }
+    
+    read_index += len;
+    if(read_index >= BUFSIZE) { read_index -= BUFSIZE; }
+    
+    *offs += len;
+    
     init_waitqueue_head(&wait);
     j0 = jiffies;
     j1 = j0 + delay;
@@ -97,18 +121,33 @@ static ssize_t jit_fn(struct file *filp, char __user *ubuff, size_t len, loff_t 
             break;
     }
     j1 = jiffies; /* actual value after we delayed */
-
-    //    len = sprintf(buf, "%9li %9li\n", j0, j1);
-    //    *start = buf;
+    
     return len;
 }
 
 static int jit_currenttime(struct file *filp, char __user *ubuff, size_t len, loff_t *offs) {
+    int remaining;
+    int available;
     struct timeval tv1;
     struct timespec tv2;
     unsigned long j1;
-    u64 j2;
-
+    u64 j2;    
+    
+    printk(KERN_ALERT "my_read\n");
+    
+    available = write_index - read_index;
+    if(available < 0) { available += BUFSIZE; }
+    if(len > available) { len = available; }
+    if(!access_ok(VERIFY_READ, ubuff, len)) { return -EFAULT; }
+    
+    remaining = copy_to_user(buf, ubuff, len);
+    if(remaining) { return -EFAULT; }
+    
+    read_index += len;
+    if(read_index >= BUFSIZE) { read_index -= BUFSIZE; }
+    
+    *offs += len;
+    
     /* get them four */
     j1 = jiffies;
     j2 = get_jiffies_64();
@@ -122,8 +161,160 @@ static int jit_currenttime(struct file *filp, char __user *ubuff, size_t len, lo
             j1, j2,
             (int) tv1.tv_sec, (int) tv1.tv_usec,
             (int) tv2.tv_sec, (int) tv2.tv_nsec);
-    *start = buf;
+    
     return len;
+}
+
+void jit_timer_fn(unsigned long arg)
+{
+	struct jit_data *data = (struct jit_data *)arg;
+	unsigned long j = jiffies;
+	data->buf += sprintf(data->buf, "%9li  %3li     %i    %6i   %i   %s\n",
+			     j, j - data->prevjiffies, in_interrupt() ? 1 : 0,
+			     current->pid, smp_processor_id(), current->comm);
+
+	if (--data->loops) {
+		data->timer.expires += tdelay;
+		data->prevjiffies = j;
+		add_timer(&data->timer);
+	} else {
+		wake_up_interruptible(&data->wait);
+	}
+}
+
+static int jit_timer(struct file *filp, char __user *ubuff, size_t len, loff_t *offs) {
+    int remaining;
+    int available;
+    struct jit_data *data;
+    unsigned long j = jiffies;
+    char *buf2 = buf;
+
+    
+    printk(KERN_ALERT "my_read\n");
+    
+    available = write_index - read_index;
+    if(available < 0) { available += BUFSIZE; }
+    if(len > available) { len = available; }
+    if(!access_ok(VERIFY_READ, ubuff, len)) { return -EFAULT; }
+    
+    remaining = copy_to_user(buf, ubuff, len);
+    if(remaining) { return -EFAULT; }
+    
+    read_index += len;
+    if(read_index >= BUFSIZE) { read_index -= BUFSIZE; }
+    
+    data = kmalloc(sizeof (*data), GFP_KERNEL);
+    if (!data) return -ENOMEM;
+    
+    *offs += len;
+    
+    /* get them four */
+    init_timer(&data->timer);
+    init_waitqueue_head(&data->wait);
+
+    /* write the first lines in the buffer */
+    buf2 += sprintf(buf2, "   time   delta  inirq    pid   cpu command\n");
+    buf2 += sprintf(buf2, "%9li  %3li     %i    %6i   %i   %s\n",
+            j, 0L, in_interrupt() ? 1 : 0,
+            current->pid, smp_processor_id(), current->comm);
+
+    /* fill the data for our timer function */
+    data->prevjiffies = j;
+    data->buf = buf;
+    data->loops = JIT_ASYNC_LOOPS;
+
+    /* register the timer */
+    data->timer.data = (unsigned long) data;
+    data->timer.function = jit_timer_fn;
+    data->timer.expires = j + tdelay; /* parameter */
+    add_timer(&data->timer);
+
+    /* wait for the buffer to fill */
+    wait_event_interruptible(data->wait, !data->loops);
+    if (signal_pending(current))
+        return -ERESTARTSYS;
+    buf2 = data->buf;
+    kfree(data);
+    return buf2 - buf;
+    
+    return len;
+}
+
+void jit_tasklet_fn(unsigned long arg) {
+    struct jit_data *data = (struct jit_data *) arg;
+    unsigned long j = jiffies;
+    data->buf += sprintf(data->buf, "%9li  %3li     %i    %6i   %i   %s\n",
+            j, j - data->prevjiffies, in_interrupt() ? 1 : 0,
+            current->pid, smp_processor_id(), current->comm);
+
+    if (--data->loops) {
+        data->prevjiffies = j;
+        if (data->hi)
+            tasklet_hi_schedule(&data->tlet);
+        else
+            tasklet_schedule(&data->tlet);
+    } else {
+        wake_up_interruptible(&data->wait);
+    }
+}
+
+/* the /proc function: allocate everything to allow concurrency */
+static int jit_tasklet(struct file *filp, char __user *ubuff, size_t len, loff_t *offs) {
+    int remaining;
+    int available;
+    struct jit_data *data;
+    unsigned long j = jiffies;
+    char *buf2 = buf;
+    long hi = (long) offs;
+
+    
+    printk(KERN_ALERT "my_read\n");
+    
+    available = write_index - read_index;
+    if(available < 0) { available += BUFSIZE; }
+    if(len > available) { len = available; }
+    if(!access_ok(VERIFY_READ, ubuff, len)) { return -EFAULT; }
+    
+    remaining = copy_to_user(buf, ubuff, len);
+    if(remaining) { return -EFAULT; }
+    
+    read_index += len;
+    if(read_index >= BUFSIZE) { read_index -= BUFSIZE; }
+    
+    data = kmalloc(sizeof (*data), GFP_KERNEL);
+    if (!data) return -ENOMEM;
+    
+    *offs += len;
+    
+    init_waitqueue_head(&data->wait);
+
+    /* write the first lines in the buffer */
+    buf2 += sprintf(buf2, "   time   delta  inirq    pid   cpu command\n");
+    buf2 += sprintf(buf2, "%9li  %3li     %i    %6i   %i   %s\n",
+            j, 0L, in_interrupt() ? 1 : 0,
+            current->pid, smp_processor_id(), current->comm);
+
+    /* fill the data for our tasklet function */
+    data->prevjiffies = j;
+    data->buf = buf2;
+    data->loops = JIT_ASYNC_LOOPS;
+
+    /* register the tasklet */
+    tasklet_init(&data->tlet, jit_tasklet_fn, (unsigned long) data);
+    data->hi = hi;
+    if (hi)
+        tasklet_hi_schedule(&data->tlet);
+    else
+        tasklet_schedule(&data->tlet);
+
+    /* wait for the buffer to fill */
+    wait_event_interruptible(data->wait, !data->loops);
+
+    if (signal_pending(current))
+        return -ERESTARTSYS;
+    buf2 = data->buf;
+    kfree(data);
+    return buf2 - buf;
 }
 
 static struct file_operations fops = {
@@ -134,6 +325,14 @@ static struct file_operations time_fops = {
     .read = jit_currenttime
 };
 
+static struct file_operations timer_fops = {
+    .read = jit_timer
+};
+
+static struct file_operations tasklet_fops = {
+    .read = jit_tasklet
+};
+
 int __init jit_init(void) {
     proc_create_data("currenttime", 0, NULL, &time_fops, NULL);
     proc_create_data("jitbusy", 0, NULL, &fops, (void *) JIT_BUSY);
@@ -141,9 +340,9 @@ int __init jit_init(void) {
     proc_create_data("jitqueue", 0, NULL, &fops, (void *) JIT_QUEUE);
     proc_create_data("jitschedto", 0, NULL, &fops, (void *) JIT_SCHEDTO);
 
-    proc_create_data("jitimer", 0, NULL, &fops, NULL);
-    proc_create_data("jitasklet", 0, NULL, &fops, NULL);
-    proc_create_data("jitasklethi", 0, NULL, &fops, (void *) 1);
+    proc_create_data("jitimer", 0, NULL, &timer_fops, NULL);
+    proc_create_data("jitasklet", 0, NULL, &tasklet_fops, NULL);
+    proc_create_data("jitasklethi", 0, NULL, &tasklet_fops, (void *) 1);
 
     return 0; /* success */
 }

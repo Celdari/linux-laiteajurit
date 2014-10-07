@@ -14,7 +14,7 @@
  * we cannot take responsibility for errors or fitness for use.
  */
 
-#include <linux/config.h>
+//#include <linux/config.h>
 #include <linux/module.h>
 #include <linux/kernel.h>
 #include <linux/types.h>
@@ -43,12 +43,14 @@ static void data_cleanup(void)
 
 static int data_init(void)
 {
+    struct new_utsname *u;
+    u = init_utsname();
 	/* print information and return an error */
 	printk("arch  Align:  char  short  int  long   ptr long-long "
 		" u8 u16 u32 u64\n");
 	printk("%-12s  %3i   %3i   %3i   %3i   %3i   %3i      "
 		"%3i %3i %3i %3i\n",
-		system_utsname.machine,
+                u -> machine , 
 		/* note that gcc can subtract void * values, but it's not ansi */
 		(int)((void *)(&c.t)   - (void *)&c),
 		(int)((void *)(&s.t)   - (void *)&s),
