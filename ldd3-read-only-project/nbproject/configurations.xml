@@ -12,6 +12,7 @@
         <in>blockdemo.c</in>
         <in>complete.c</in>
         <in>devdemo.c</in>
+        <in>devfsdemo.c</in>
         <in>faulty.c</in>
         <in>hello.c</in>
         <in>hellop.c</in>
@@ -147,6 +148,11 @@
             flavor2="0">
       </item>
       <item path="../ldd3-read-only/misc-modules/devdemo.c"
+            ex="false"
+            tool="0"
+            flavor2="0">
+      </item>
+      <item path="../ldd3-read-only/misc-modules/devfsdemo.c"
             ex="false"
             tool="0"
             flavor2="0">

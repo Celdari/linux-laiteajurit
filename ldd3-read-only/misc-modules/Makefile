@@ -15,19 +15,21 @@ ifeq ($(KERNELRELEASE),)
 modules:
 	$(MAKE) -C $(KERNELDIR) --debug=b M=$(PWD) modules
 
-modules_install:
+modules_install: modules
 	#insmod hello.ko 
 	#insmod devdemo.ko	
 	#insmod kdataalign.ko
-	insmod blockdemo.ko
+	#insmod blockdemo.ko
+	insmod devfsdemo.ko 
 	#(MAKE) -C $(KERNELDIR) --debug=b M=$(PWD) modules_install
 
-.REINSTALL: modules .UNINSTALL modules_install
+.REINSTALL: .UNINSTALL modules_install
 
 .UNINSTALL: 
 	#rmmod hello.ko
 	#rmmod devdemo.ko
-	rmmod blockdemo.ko
+	#rmmod blockdemo.ko
+	rmmod devfsdemo.ko || echo "Nothing to remove\n"
 
 clean:
 	#rmmod hello.ko 
@@ -38,7 +40,7 @@ clean:
 
 else
     #Specific file build
-    obj-m := blockdemo.o
+    obj-m := devfsdemo.o
 
     # called from kernel build system: just declare what our modules are
     #obj-m := hello.o hellop.o devdemo.o seq.o jit.o jiq.o sleepy.o complete.o \
