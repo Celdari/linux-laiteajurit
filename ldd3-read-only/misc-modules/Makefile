@@ -15,7 +15,7 @@ ifeq ($(KERNELRELEASE),)
 modules:
 	$(MAKE) -C $(KERNELDIR) --debug=b M=$(PWD) modules
 
-modules_install: modules
+modules_install:
 	#insmod hello.ko 
 	#insmod devdemo.ko	
 	#insmod kdataalign.ko
@@ -25,7 +25,7 @@ modules_install: modules
 
 .REINSTALL: .UNINSTALL modules_install
 
-.UNINSTALL: 
+.UNINSTALL: modules
 	#rmmod hello.ko
 	#rmmod devdemo.ko
 	#rmmod blockdemo.ko

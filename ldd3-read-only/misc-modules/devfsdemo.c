@@ -4,6 +4,7 @@
 #include <linux/module.h>
 #include <linux/cdev.h>
 #include <linux/uaccess.h>
+#include <linux/seq_file.h>
 
 
 MODULE_LICENSE("Dual BSD/GPL");
@@ -15,20 +16,21 @@ static struct cdev my_cdev;
 static struct device *my_device;
 
 //Parameters
-#define BUFSIZE 80
-static char buf[BUFSIZE] = "testi";
-static int rows = 1;
+#define BUFSIZE 32
+static char buf[BUFSIZE] = "testi tapahtuma nyt";
+static int rows = 4;
 static int read_index = 0;
 static int write_index = 0;
+static int Device_Open = 0;
 
 //Buffer operations
 static int buf_get(char *buffer, const struct kernel_param *kp) {
+    strim(buffer);
     return scnprintf(buffer, PAGE_SIZE, "%s", ((char *)kp->arg));
 }
-
 static int buf_set(const char *val, const struct kernel_param *kp) {  
   char *p = kp->arg;
-  strim(val);
+  
   if(strlen(val) >= BUFSIZE) {
       printk(KERN_ERR "Given string is too long. Maximum length is %i\n", BUFSIZE - 1); //Final char is NUL
       return -EINVAL;
@@ -40,7 +42,6 @@ static int buf_set(const char *val, const struct kernel_param *kp) {
   
   return 0;
 }
-
 static struct kernel_param_ops buf_ops = {
     .get = buf_get,
     .set = buf_set
@@ -76,40 +77,49 @@ static struct kernel_param_ops row_ops = {
 module_param_cb(rows, &row_ops, &rows, S_IRUGO | S_IWUSR);  //End row operations
 
 //Device operations
-static ssize_t my_read (struct file *filp, char __user *ubuff, size_t len, loff_t *offs) {
-    int remaining;
-    int available;
+static ssize_t buf_read (struct file *filp, char __user *ubuff, size_t len, loff_t *offs) {
+    int charsPerRow = BUFSIZE / rows;
+    int count = strlen(buf);
+    char screen[BUFSIZE] = "";
+    char c;
+    int i;
     
-    printk(KERN_ALERT "my_read\n");
+    //We only support reading the whole string at once
+    if(len < count) 
+        return -EINVAL;
     
-    available = write_index - read_index;
-    if(available < 0) {
-        available += BUFSIZE;
-    }
+    /*If file position is non-zero, then assume the string has been
+     * read and indicate there is no more data to read.
+     */
+    if(*offs != 0)
+        return 0;
+
+    /*
+     * Besides copying the string to the user provided buffer,
+     * this function also checks that the user has permission to
+     * write to the buffer, that it is mapped, etc.
+     */
+//    for(i = 0; i < count; i++) {
+//        if(strlen(screen) + 1 == BUFSIZE) break;
+//        if(i % charsPerRow == 0 && i != 0) strcat(screen, "\n");
+//        
+//        c = buf[i];
+//        strcat(screen, c);
+//    }
+//    
+//    strcat(screen, "\0");
+//    printk(KERN_ALERT "Copy to user\n");
+    if (copy_to_user(ubuff, buf, count))
+        return -EINVAL;
     
-    if(len > available) {
-        len = available;
-    }
+    /*
+     * Tell the user how much data we wrote.
+     */
+    *offs = count;
     
-    if(!access_ok(VERIFY_READ, ubuff, len)) {
-        return -EFAULT;
-    }
-    
-    remaining = copy_to_user(buf, ubuff, len);
-    if(remaining) {
-        return -EFAULT;
-    }
-    
-    read_index += len;
-    if(read_index >= BUFSIZE) {
-        read_index -= BUFSIZE;
-    }
-    
-    *offs += len;
-    
-    return len;
+    return count;
 }
-static ssize_t my_write (struct file *filp, const char __user *ubuff, size_t len, loff_t *offs) {
+static ssize_t buf_write (struct file *filp, const char __user *ubuff, size_t len, loff_t *offs) {
     int remaining;
     int space_left;
     
@@ -146,19 +156,53 @@ static ssize_t my_write (struct file *filp, const char __user *ubuff, size_t len
     
     return len;
 }
-static int my_open (struct inode *inode, struct file *filp) {
-    printk(KERN_ALERT "my_open\n");
+//static int buf_open (struct inode *inode, struct file *filp) {
+//    printk(KERN_ALERT "my_open\n");
+//    return 0;
+//}
+//static int buf_release (struct inode *inode, struct file *filp) {
+//    printk(KERN_ALERT "my_release\n");
+//    return 0;
+//}
+
+static int device_open(struct inode *inode, struct file *file) {
+#ifdef DEBUG
+    printk(KERN_INFO "device_open(%p)\n", file);
+#endif
+
+    /* 
+     * We don't want to talk to two processes at the same time 
+     */
+    if (Device_Open)
+        return -EBUSY;
+
+    Device_Open++;
+    /*
+     * Initialize the message 
+     */
+//    Message_Ptr = Message;
+    try_module_get(THIS_MODULE);
     return 0;
 }
-static int my_release (struct inode *inode, struct file *filp) {
-    printk(KERN_ALERT "my_release\n");
+static int device_release(struct inode *inode, struct file *file) {
+#ifdef DEBUG
+    printk(KERN_INFO "device_release(%p,%p)\n", inode, file);
+#endif
+
+    /* 
+     * We're now ready for our next caller 
+     */
+    Device_Open--;
+
+    module_put(THIS_MODULE);
     return 0;
 }
 static struct file_operations fileops = {
-    .read = my_read,
-    .write = my_write,
-    .open = my_open,
-    .release = my_release
+    .read = buf_read,
+    .write = buf_write,
+    .open = device_open,
+    .release = device_release
+            //single_release seq_release swaps_open scull_open
 }; //End device operations
 
 static int dev_init(void) {
