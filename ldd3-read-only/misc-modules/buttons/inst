@@ -1,0 +1,26 @@
+#!/bin/bash
+
+if ! ((`lsmod | grep i2c-bcm2708 | wc -l`))
+  then 
+    modprobe i2c-bcm2708
+  fi
+if ! ((`lsmod | grep gpio-mcp23s08 | wc -l`))
+  then 
+    modprobe gpio-mcp23s08
+  fi
+
+#if ! [[ -e /sys/class/gpio/gpiochip240 ]]
+#  then
+#    echo mcp23017 0x20 > /sys/bus/i2c/devices/i2c-1/new_device
+#  fi
+
+if ((`lsmod | grep buttons | wc -l`))
+  then 
+    rmmod buttons
+  fi
+insmod buttons.ko
+if ((`ls /dev | grep buttons | wc -l`))
+  then 
+    chmod 666 /dev/buttons
+  fi
+

@@ -18,6 +18,8 @@ static struct device *my_device;
 #define BUFSIZE 80
 static char buf[BUFSIZE] = "testi";
 static int rows = 1;
+static int read_index = 0;
+static int write_index = 0;
 
 //Buffer operations
 static int buf_get(char *buffer, const struct kernel_param *kp) {
@@ -39,13 +41,11 @@ static int buf_set(const char *val, const struct kernel_param *kp) {
   return 0;
 }
 
-static struct kernel_param_ops dev_ops = {
+static struct kernel_param_ops buf_ops = {
     .get = buf_get,
     .set = buf_set
 }; //End buffer operations
-
-//module_param(buf, charp, S_IRUGO | S_IWUSR);
-module_param_cb(buffer, &dev_ops, buf, S_IRUGO | S_IWUSR);
+module_param_cb(buffer, &buf_ops, buf, S_IRUGO | S_IWUSR);
 
 //Row operations
 int row_read(char *buffer, const struct kernel_param *kp) {
@@ -53,9 +53,6 @@ int row_read(char *buffer, const struct kernel_param *kp) {
 }
 static int row_write(const char *val, const struct kernel_param *kp) {
     int value = *val - '0';
-    
-//    int value;
-//    value = kstrtoul(val, 0, &l);
     
     switch (value) {
         case 1: case 2: case 4:
@@ -78,6 +75,92 @@ static struct kernel_param_ops row_ops = {
 };
 module_param_cb(rows, &row_ops, &rows, S_IRUGO | S_IWUSR);  //End row operations
 
+//Device operations
+static ssize_t my_read (struct file *filp, char __user *ubuff, size_t len, loff_t *offs) {
+    int remaining;
+    int available;
+    
+    printk(KERN_ALERT "my_read\n");
+    
+    available = write_index - read_index;
+    if(available < 0) {
+        available += BUFSIZE;
+    }
+    
+    if(len > available) {
+        len = available;
+    }
+    
+    if(!access_ok(VERIFY_READ, ubuff, len)) {
+        return -EFAULT;
+    }
+    
+    remaining = copy_to_user(buf, ubuff, len);
+    if(remaining) {
+        return -EFAULT;
+    }
+    
+    read_index += len;
+    if(read_index >= BUFSIZE) {
+        read_index -= BUFSIZE;
+    }
+    
+    *offs += len;
+    
+    return len;
+}
+static ssize_t my_write (struct file *filp, const char __user *ubuff, size_t len, loff_t *offs) {
+    int remaining;
+    int space_left;
+    
+    printk(KERN_ALERT "my_write\n");
+    
+    space_left = BUFSIZE - 1 - write_index + read_index;
+    
+    if(space_left > BUFSIZE) {
+        space_left -= BUFSIZE;
+    }
+    
+    if(len >= space_left) {
+        len = space_left;
+    }
+    
+    if(!access_ok(VERIFY_WRITE, ubuff, len)) {
+        return -EFAULT;
+    }
+    
+    remaining = copy_to_user(buf, ubuff, len);
+    
+    if(remaining) {
+        return -EFAULT;
+    }
+    
+    write_index += len;
+    if(write_index >= BUFSIZE) {
+        write_index -= BUFSIZE;
+    }
+    
+    *offs += len;
+    
+    printk(KERN_ALERT "my_write got %d\n", len);
+    
+    return len;
+}
+static int my_open (struct inode *inode, struct file *filp) {
+    printk(KERN_ALERT "my_open\n");
+    return 0;
+}
+static int my_release (struct inode *inode, struct file *filp) {
+    printk(KERN_ALERT "my_release\n");
+    return 0;
+}
+static struct file_operations fileops = {
+    .read = my_read,
+    .write = my_write,
+    .open = my_open,
+    .release = my_release
+}; //End device operations
+
 static int dev_init(void) {
     int err;
 
@@ -97,7 +180,7 @@ static int dev_init(void) {
             MAJOR(my_devnum), MINOR(my_devnum)); //Print to make sure the device has allocated a region
 
     //3: init cdev
-    cdev_init(&my_cdev, &dev_ops);
+    cdev_init(&my_cdev, &fileops);
     my_cdev.owner = THIS_MODULE;
     
     //4: add cdev
